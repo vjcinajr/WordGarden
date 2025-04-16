@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var guessedLetter = ""
     @State private var imageName = "flower8"
     @State private var playAgainHidden: Bool = true
+    @FocusState private var textFieldIsFocused: Bool
     
     var body: some View {
         VStack {
@@ -31,8 +32,11 @@ struct ContentView: View {
                     Text("Words in Game: \(wordsToGuess.count)")
                 }
             }
-            .padding()
+            
+            .padding(.horizontal)
+            
             Spacer()
+            
             Text(gameStatusMessage)
                 .font(.title)
                 .multilineTextAlignment(.center)
@@ -51,17 +55,34 @@ struct ContentView: View {
                             RoundedRectangle(cornerRadius: 5)
                                 .stroke(.gray, lineWidth: 2)
                         }
+                        .keyboardType(.asciiCapable)
+                        .submitLabel(.done)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.characters)
+                        .onChange(of: guessedLetter) {
+                            guessedLetter = guessedLetter.trimmingCharacters(in:
+                                    .letters.inverted)
+                            guard let lastChar = guessedLetter.last else {
+                                return
+                            }
+                            guessedLetter = String(lastChar).uppercased()
+                        }
+                        .focused($textFieldIsFocused)
+                    // see https://medium.com/better-programming/12-shades-of-keyboard-types-in-ios-a413cf93bf4f for .keyboardType doc
+                    
                     Button("Guess a Letter:") {
                         //TODO: guess the letter action here
-                        playAgainHidden = false
+                        textFieldIsFocused = false
+                        
                     }
                     .buttonStyle(.bordered)
                     .tint(.mint)
+                    .disabled(guessedLetter.isEmpty)
                 }
             } else {
                 Button("Another Word?") {
                     //TODO: another word button action here
-                    playAgainHidden = true
+                    
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.mint)
